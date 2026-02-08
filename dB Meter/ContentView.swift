@@ -38,7 +38,7 @@ struct ContentView: View {
     private var formattedDB: String {
         let db = audioManager.currentDB
         if db.isFinite && db > -96 {
-            return String(format: "%.1f", db)
+            return String(format: "%.0f", db)
         }
         return "--"
     }

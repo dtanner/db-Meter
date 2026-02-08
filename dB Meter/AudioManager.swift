@@ -10,6 +10,7 @@ struct AudioDevice: Identifiable, Hashable {
 class AudioManager: ObservableObject {
     @Published var currentDB: Float = -.infinity
     @Published var availableDevices: [AudioDevice] = []
+    private let smoothingFactor: Float = 0.3
     @Published var selectedDeviceID: AudioDeviceID? {
         didSet {
             if oldValue != selectedDeviceID {
@@ -132,7 +133,12 @@ class AudioManager: ObservableObject {
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             let db = self?.calculateDB(buffer: buffer) ?? -.infinity
             Task { @MainActor [weak self] in
-                self?.currentDB = db
+                guard let self else { return }
+                if self.currentDB.isFinite {
+                    self.currentDB = self.currentDB + self.smoothingFactor * (db - self.currentDB)
+                } else {
+                    self.currentDB = db
+                }
             }
         }
 
