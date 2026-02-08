@@ -1,0 +1,27 @@
+.DS_Store
+.playwright-mcp
+/.claude/settings.local.json
+
+# Xcode
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods (not expected but just in case)
+Pods/
+
+# Archives
+*.xcarchive
+
+# IDE
+/.idea/
+*.iml
+*.swp
+*~
