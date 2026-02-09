@@ -42,14 +42,10 @@ A native macOS app that displays the current sound pressure level (SPL) from you
 
 1. Download `dB-Meter.zip` from the [latest release](https://github.com/dtanner/spl/releases/latest)
 2. Unzip and drag `dB Meter.app` to your Applications folder
-3. On first launch, macOS will block the app because it's unsigned. To open it:
-   - Right-click (or Control-click) the app and select **Open**
-   - Click **Open** in the confirmation dialog
-   - You only need to do this once
-
-### Homebrew (not yet available)
-
-If there's interest, this could be added as a Homebrew cask in the future.
+3. Remove the macOS quarantine attribute (required because the app isn't notarized):
+   ```
+   xattr -cr /Applications/dB\ Meter.app
+   ```
 
 ## Permissions
 
