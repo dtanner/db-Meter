@@ -124,7 +124,7 @@ class AudioManager: ObservableObject {
     @Published var availableDevices: [AudioDevice] = []
     private let smoothingFactor: Float = 0.3
     private var historyTimer: Timer?
-    private let maxHistoryEntries = 60
+    private let maxHistoryEntries = 240
 
     static let defaultCalibrationOffset: Float = 100
     private static let calibrationKey = "calibrationOffset"
@@ -343,7 +343,7 @@ class AudioManager: ObservableObject {
     // MARK: - History Timer
 
     private func startHistoryTimer() {
-        historyTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        historyTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.dbHistory.append(self.currentDB)

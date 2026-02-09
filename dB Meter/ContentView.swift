@@ -45,20 +45,6 @@ struct ContentView: View {
             Text("dB(A) SPL")
                 .font(.caption)
                 .foregroundColor(.secondary)
-
-            // Level meter bar
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.2))
-
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(meterGradient)
-                        .frame(width: meterWidth(in: geometry.size.width))
-                        .animation(.easeOut(duration: 0.1), value: audioManager.currentDB)
-                }
-            }
-            .frame(height: 12)
         }
     }
 
@@ -104,19 +90,4 @@ struct ContentView: View {
         return .green
     }
 
-    private var meterGradient: LinearGradient {
-        LinearGradient(
-            colors: [.green, .yellow, .red],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-    }
-
-    private func meterWidth(in totalWidth: CGFloat) -> CGFloat {
-        let db = audioManager.currentDB
-        guard db.isFinite else { return 0 }
-        // Map 0...130 dB(A) SPL to 0...1
-        let normalized = CGFloat(db / 130)
-        return max(0, min(1, normalized)) * totalWidth
-    }
 }

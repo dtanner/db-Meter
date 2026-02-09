@@ -4,8 +4,8 @@ struct HistoryChartView: View {
     @ObservedObject var audioManager: AudioManager
 
     private let minDB: Float = 0
-    private let maxDB: Float = 130
-    private let gridLines: [Float] = [0, 30, 60, 85, 100, 130]
+    private let maxDB: Float = 100
+    private let gridLines: [Float] = [0, 20, 40, 60, 70, 85, 100]
 
     var body: some View {
         GeometryReader { geometry in
