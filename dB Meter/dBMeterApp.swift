@@ -19,18 +19,18 @@ struct dBMeterApp: App {
                 .monospacedDigit()
         }
 
-        Window("dB Meter", id: "meter") {
+        Window("dB(A) Meter", id: "meter") {
             ContentView(audioManager: audioManager)
-                .frame(width: 320, height: 280)
+                .frame(width: 320, height: 320)
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
     }
 
     private func formatMenuBarLabel(_ db: Float) -> String {
-        if db.isFinite && db > -Float.infinity {
-            return String(format: "%.0f dB", db)
+        if db.isFinite && db > 0 {
+            return String(format: "%.0f dB(A)", db)
         }
-        return "-- dB"
+        return "-- dB(A)"
     }
 }

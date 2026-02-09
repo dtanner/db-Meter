@@ -3,9 +3,9 @@ import SwiftUI
 struct HistoryChartView: View {
     @ObservedObject var audioManager: AudioManager
 
-    private let minDB: Float = -96
-    private let maxDB: Float = 0
-    private let gridLines: [Float] = [-96, -60, -30, 0]
+    private let minDB: Float = 0
+    private let maxDB: Float = 130
+    private let gridLines: [Float] = [0, 30, 60, 85, 100, 130]
 
     var body: some View {
         GeometryReader { geometry in
@@ -78,8 +78,8 @@ struct HistoryChartView: View {
     }
 
     private func colorForDB(_ db: Float) -> Color {
-        if db > -6 { return .red }
-        if db > -20 { return .yellow }
+        if db > 85 { return .red }
+        if db > 70 { return .yellow }
         return .green
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 enum MeterTab: String, CaseIterable {
     case meter = "Meter"
     case history = "History"
+    case settings = "Settings"
 }
 
 struct ContentView: View {
@@ -24,6 +25,8 @@ struct ContentView: View {
                 meterView
             case .history:
                 HistoryChartView(audioManager: audioManager)
+            case .settings:
+                settingsView
             }
 
             DevicePicker(audioManager: audioManager)
@@ -39,7 +42,7 @@ struct ContentView: View {
                 .monospacedDigit()
                 .foregroundColor(dbColor)
 
-            Text("dB SPL")
+            Text("dB(A) SPL")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -59,9 +62,36 @@ struct ContentView: View {
         }
     }
 
+    private var settingsView: some View {
+        VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Calibration Offset")
+                    .font(.headline)
+
+                HStack {
+                    Text("\(Int(audioManager.calibrationOffset)) dB")
+                        .monospacedDigit()
+                        .frame(width: 50, alignment: .trailing)
+                    Slider(value: $audioManager.calibrationOffset, in: 60...130, step: 1)
+                }
+
+                Text("Adjusts the dBFS-to-dB(A) SPL conversion. Calibrate with a known reference source for accuracy.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Button("Reset to Default") {
+                    audioManager.calibrationOffset = AudioManager.defaultCalibrationOffset
+                }
+                .font(.caption)
+            }
+
+            Spacer()
+        }
+    }
+
     private var formattedDB: String {
         let db = audioManager.currentDB
-        if db.isFinite && db > -96 {
+        if db.isFinite && db > 0 {
             return String(format: "%.0f", db)
         }
         return "--"
@@ -69,8 +99,8 @@ struct ContentView: View {
 
     private var dbColor: Color {
         let db = audioManager.currentDB
-        if db > -6 { return .red }
-        if db > -20 { return .yellow }
+        if db > 85 { return .red }
+        if db > 70 { return .yellow }
         return .green
     }
 
@@ -85,8 +115,8 @@ struct ContentView: View {
     private func meterWidth(in totalWidth: CGFloat) -> CGFloat {
         let db = audioManager.currentDB
         guard db.isFinite else { return 0 }
-        // Map -96...0 dB to 0...1
-        let normalized = CGFloat((db + 96) / 96)
+        // Map 0...130 dB(A) SPL to 0...1
+        let normalized = CGFloat(db / 130)
         return max(0, min(1, normalized)) * totalWidth
     }
 }
