@@ -5,7 +5,25 @@ struct HistoryChartView: View {
 
     private let minDB: Float = 0
     private let maxDB: Float = 100
-    private let gridLines: [Float] = [0, 20, 40, 60, 70, 85, 100]
+
+    private func gridLines(for height: CGFloat) -> [Float] {
+        // Target ~40pt minimum spacing between grid lines
+        let maxLines = max(Int(height / 40), 2)
+        let range = maxDB - minDB
+
+        // Choose a step that gives a readable scale
+        let steps: [Float] = [5, 10, 20, 25, 50]
+        let idealStep = range / Float(maxLines)
+        let step = steps.first { $0 >= idealStep } ?? 50
+
+        var lines: [Float] = []
+        var value = minDB
+        while value <= maxDB {
+            lines.append(value)
+            value += step
+        }
+        return lines
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -14,7 +32,7 @@ struct HistoryChartView: View {
 
             ZStack {
                 // Grid lines and labels
-                ForEach(gridLines, id: \.self) { db in
+                ForEach(gridLines(for: height), id: \.self) { db in
                     let y = yPosition(for: db, in: height)
                     Path { path in
                         path.move(to: CGPoint(x: 30, y: y))
