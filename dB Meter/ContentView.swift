@@ -35,16 +35,23 @@ struct ContentView: View {
     }
 
     private var meterView: some View {
-        VStack(spacing: 12) {
-            // dB Reading
-            Text(formattedDB)
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundColor(dbColor)
+        GeometryReader { geometry in
+            let fontSize = min(geometry.size.width, geometry.size.height) * 0.3
+            let captionSize = fontSize * 0.25
+            VStack(spacing: 12) {
+                Spacer()
+                // dB Reading
+                Text(formattedDB)
+                    .font(.system(size: fontSize, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundColor(dbColor)
 
-            Text("dB(A) SPL")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                Text("dB(A) SPL")
+                    .font(.system(size: captionSize))
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
