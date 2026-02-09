@@ -2,6 +2,9 @@
 
 A native macOS app that displays the current sound pressure level (SPL) from your microphone input in real time.
 
+![Meter view](docs/meter-screenshot.png)
+![History view](docs/history-screenshot.png)
+
 ## Features
 
 - Real-time decibel (dB) meter showing current sound pressure level
