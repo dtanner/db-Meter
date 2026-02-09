@@ -1,4 +1,5 @@
 import AVFoundation
+import Accelerate
 import Combine
 import CoreAudio
 
@@ -123,6 +124,8 @@ class AudioManager: ObservableObject {
     @Published var dbHistory: [Float] = []
     @Published var availableDevices: [AudioDevice] = []
     private let smoothingFactor: Float = 0.3
+    private var smoothedDB: Float = -.infinity
+    private var displayedIntDB: Int = Int.min
     private var historyTimer: Timer?
     private let maxHistoryEntries = 240
 
@@ -146,6 +149,8 @@ class AudioManager: ObservableObject {
     private var audioEngine = AVAudioEngine()
     private var isRunning = false
     private var aWeightingFilter: AWeightingFilter?
+    private var lastUIUpdate: CFAbsoluteTime = 0
+    private let uiUpdateInterval: CFAbsoluteTime = 0.25  // 4 updates/sec
 
     init() {
         if UserDefaults.standard.object(forKey: Self.calibrationKey) != nil {
@@ -276,15 +281,26 @@ class AudioManager: ObservableObject {
 
         aWeightingFilter = AWeightingFilter(sampleRate: format.sampleRate)
 
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
-            let dbFS = self?.calculateDBA(buffer: buffer) ?? -.infinity
+        inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
+            guard let self else { return }
+            let now = CFAbsoluteTimeGetCurrent()
+            guard now - self.lastUIUpdate >= self.uiUpdateInterval else { return }
+            self.lastUIUpdate = now
+
+            let dbFS = self.calculateDBA(buffer: buffer)
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 let dbSPL = dbFS + self.calibrationOffset
-                if self.currentDB.isFinite {
-                    self.currentDB = self.currentDB + self.smoothingFactor * (dbSPL - self.currentDB)
+                if self.smoothedDB.isFinite {
+                    self.smoothedDB = self.smoothedDB + self.smoothingFactor * (dbSPL - self.smoothedDB)
                 } else {
-                    self.currentDB = dbSPL
+                    self.smoothedDB = dbSPL
+                }
+                // Only publish when the displayed integer changes to avoid unnecessary SwiftUI re-renders
+                let newIntDB = self.smoothedDB.isFinite && self.smoothedDB > 0 ? Int(self.smoothedDB.rounded()) : Int.min
+                if newIntDB != self.displayedIntDB {
+                    self.displayedIntDB = newIntDB
+                    self.currentDB = self.smoothedDB
                 }
             }
         }
@@ -343,10 +359,10 @@ class AudioManager: ObservableObject {
     // MARK: - History Timer
 
     private func startHistoryTimer() {
-        historyTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+        historyTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.dbHistory.append(self.currentDB)
+                self.dbHistory.append(self.smoothedDB)
                 if self.dbHistory.count > self.maxHistoryEntries {
                     self.dbHistory.removeFirst(self.dbHistory.count - self.maxHistoryEntries)
                 }
@@ -376,10 +392,9 @@ class AudioManager: ObservableObject {
             let data = channelData[channel]
             aWeightingFilter?.process(data, output: filtered, count: frameLength)
 
-            for frame in 0..<frameLength {
-                let sample = filtered[frame]
-                sumOfSquares += sample * sample
-            }
+            var channelSumOfSquares: Float = 0
+            vDSP_dotpr(filtered, 1, filtered, 1, &channelSumOfSquares, vDSP_Length(frameLength))
+            sumOfSquares += channelSumOfSquares
         }
 
         let rms = sqrt(sumOfSquares / Float(frameLength * channelCount))
