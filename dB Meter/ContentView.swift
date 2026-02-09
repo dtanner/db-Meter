@@ -1,9 +1,37 @@
 import SwiftUI
 
+enum MeterTab: String, CaseIterable {
+    case meter = "Meter"
+    case history = "History"
+}
+
 struct ContentView: View {
     @ObservedObject var audioManager: AudioManager
+    @State private var selectedTab: MeterTab = .meter
 
     var body: some View {
+        VStack(spacing: 12) {
+            Picker("View", selection: $selectedTab) {
+                ForEach(MeterTab.allCases, id: \.self) { tab in
+                    Text(tab.rawValue).tag(tab)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            switch selectedTab {
+            case .meter:
+                meterView
+            case .history:
+                HistoryChartView(audioManager: audioManager)
+            }
+
+            DevicePicker(audioManager: audioManager)
+        }
+        .padding()
+    }
+
+    private var meterView: some View {
         VStack(spacing: 12) {
             // dB Reading
             Text(formattedDB)
@@ -28,11 +56,7 @@ struct ContentView: View {
                 }
             }
             .frame(height: 12)
-
-            // Device picker
-            DevicePicker(audioManager: audioManager)
         }
-        .padding()
     }
 
     private var formattedDB: String {

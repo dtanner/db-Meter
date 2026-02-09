@@ -21,7 +21,7 @@ struct dBMeterApp: App {
 
         Window("dB Meter", id: "meter") {
             ContentView(audioManager: audioManager)
-                .frame(width: 280, height: 200)
+                .frame(width: 320, height: 280)
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)

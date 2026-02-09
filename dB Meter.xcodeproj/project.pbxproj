@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0F3E6632562F1AF9BE246783 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A148357115DCACB86559E6 /* ContentView.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* HistoryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E3F4A5B6C70829314D5E6F /* HistoryChartView.swift */; };
 		30F4E89689B7B8BDE2FC5A13 /* DevicePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786B98F3C8C3814FACA61F4F /* DevicePicker.swift */; };
 		44B2B75F2668AF0FEA65B33B /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 693DBC8349EF45832D0B16D2 /* AudioManager.swift */; };
 		7D798977DF097448AB8DB29A /* dBMeterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D847055DACAEDD3FAAAEDAFA /* dBMeterApp.swift */; };
@@ -19,6 +20,7 @@
 		4BC342FE5B83BACBFA7FBB71 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4D15C31851D2D808DCF0F1ED /* dB Meter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "dB Meter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		693DBC8349EF45832D0B16D2 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		D2E3F4A5B6C70829314D5E6F /* HistoryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryChartView.swift; sourceTree = "<group>"; };
 		786B98F3C8C3814FACA61F4F /* DevicePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePicker.swift; sourceTree = "<group>"; };
 		819C65E714FC0B05089230A8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D847055DACAEDD3FAAAEDAFA /* dBMeterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dBMeterApp.swift; sourceTree = "<group>"; };
@@ -33,6 +35,7 @@
 				693DBC8349EF45832D0B16D2 /* AudioManager.swift */,
 				33A148357115DCACB86559E6 /* ContentView.swift */,
 				EAF9E0F2343CD2C40ED75606 /* dBMeter.entitlements */,
+				D2E3F4A5B6C70829314D5E6F /* HistoryChartView.swift */,
 				D847055DACAEDD3FAAAEDAFA /* dBMeterApp.swift */,
 				786B98F3C8C3814FACA61F4F /* DevicePicker.swift */,
 				819C65E714FC0B05089230A8 /* Info.plist */,
@@ -129,6 +132,7 @@
 			files = (
 				44B2B75F2668AF0FEA65B33B /* AudioManager.swift in Sources */,
 				0F3E6632562F1AF9BE246783 /* ContentView.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* HistoryChartView.swift in Sources */,
 				30F4E89689B7B8BDE2FC5A13 /* DevicePicker.swift in Sources */,
 				7D798977DF097448AB8DB29A /* dBMeterApp.swift in Sources */,
 			);

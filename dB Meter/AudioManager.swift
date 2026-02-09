@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import CoreAudio
 
 struct AudioDevice: Identifiable, Hashable {
@@ -9,8 +10,11 @@ struct AudioDevice: Identifiable, Hashable {
 @MainActor
 class AudioManager: ObservableObject {
     @Published var currentDB: Float = -.infinity
+    @Published var dbHistory: [Float] = []
     @Published var availableDevices: [AudioDevice] = []
     private let smoothingFactor: Float = 0.3
+    private var historyTimer: Timer?
+    private let maxHistoryEntries = 60
     @Published var selectedDeviceID: AudioDeviceID? {
         didSet {
             if oldValue != selectedDeviceID {
@@ -122,13 +126,27 @@ class AudioManager: ObservableObject {
         guard !isRunning else { return }
 
         if let deviceID = selectedDeviceID {
-            setAudioEngineInputDevice(deviceID)
+            if !setAudioEngineInputDevice(deviceID) {
+                print("Failed to set input device \(deviceID), falling back to default")
+                if let fallback = defaultInputDeviceID(), fallback != deviceID {
+                    if !setAudioEngineInputDevice(fallback) {
+                        print("Failed to set fallback device, cannot capture audio")
+                        return
+                    }
+                    selectedDeviceID = fallback
+                } else {
+                    return
+                }
+            }
         }
 
         let inputNode = audioEngine.inputNode
-        let format = inputNode.outputFormat(forBus: 0)
+        let format = inputNode.inputFormat(forBus: 0)
 
-        guard format.sampleRate > 0 else { return }
+        guard format.sampleRate > 0, format.channelCount > 0 else {
+            print("Invalid audio format (sampleRate=\(format.sampleRate), channels=\(format.channelCount))")
+            return
+        }
 
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             let db = self?.calculateDB(buffer: buffer) ?? -.infinity
@@ -145,13 +163,16 @@ class AudioManager: ObservableObject {
         do {
             try audioEngine.start()
             isRunning = true
+            startHistoryTimer()
         } catch {
             print("Failed to start audio engine: \(error)")
+            inputNode.removeTap(onBus: 0)
         }
     }
 
     func stopCapture() {
         guard isRunning else { return }
+        stopHistoryTimer()
         audioEngine.inputNode.removeTap(onBus: 0)
         audioEngine.stop()
         isRunning = false
@@ -159,16 +180,21 @@ class AudioManager: ObservableObject {
 
     private func restartCapture() {
         stopCapture()
-        audioEngine = AVAudioEngine()
+        audioEngine.reset()
+        currentDB = -.infinity
         startCapture()
     }
 
-    private func setAudioEngineInputDevice(_ deviceID: AudioDeviceID) {
+    @discardableResult
+    private func setAudioEngineInputDevice(_ deviceID: AudioDeviceID) -> Bool {
         let inputNode = audioEngine.inputNode
-        let audioUnit = inputNode.audioUnit!
+        guard let audioUnit = inputNode.audioUnit else {
+            print("No audio unit available on input node")
+            return false
+        }
 
         var id = deviceID
-        AudioUnitSetProperty(
+        let status = AudioUnitSetProperty(
             audioUnit,
             kAudioOutputUnitProperty_CurrentDevice,
             kAudioUnitScope_Global,
@@ -176,6 +202,31 @@ class AudioManager: ObservableObject {
             &id,
             UInt32(MemoryLayout<AudioDeviceID>.size)
         )
+
+        if status != noErr {
+            print("AudioUnitSetProperty failed with status \(status) for device \(deviceID)")
+            return false
+        }
+        return true
+    }
+
+    // MARK: - History Timer
+
+    private func startHistoryTimer() {
+        historyTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.dbHistory.append(self.currentDB)
+                if self.dbHistory.count > self.maxHistoryEntries {
+                    self.dbHistory.removeFirst(self.dbHistory.count - self.maxHistoryEntries)
+                }
+            }
+        }
+    }
+
+    private func stopHistoryTimer() {
+        historyTimer?.invalidate()
+        historyTimer = nil
     }
 
     // MARK: - dB Calculation
